@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OtpPurpose {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PLACED
+  CONFIRMED
+  PREPARING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum CakeRequestStatus {
+  NEW
+  REVIEWED
+  QUOTED
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  phone         String?
+  role          Role     @default(CUSTOMER)
+  emailVerified DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  addresses         Address[]
+  cartItems         CartItem[]
+  orders            Order[]
+  reviews           Review[]
+  customCakeRequests CustomCakeRequest[]
+}
+
+model OtpCode {
+  id         String     @id @default(cuid())
+  email      String
+  codeHash   String
+  purpose    OtpPurpose
+  expiresAt  DateTime
+  attempts   Int        @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([email, purpose])
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String  @default("Home")
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  phone     String
+  isDefault Boolean @default(false)
+
+  @@index([userId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  products    Product[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  // All money is stored in paise (₹1 = 100 paise)
+  price       Int
+  unitLabel   String   @default("1 piece")
+  imageUrl    String?
+  isEggless   Boolean  @default(false)
+  isAvailable Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  @@index([categoryId])
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+model DeliverySlot {
+  id        String  @id @default(cuid())
+  label     String
+  startTime String
+  endTime   String
+  capacity  Int     @default(10)
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+  orders    Order[]
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  orderNumber    String        @unique
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  status         OrderStatus   @default(PENDING_PAYMENT)
+  paymentStatus  PaymentStatus @default(PENDING)
+  subtotal       Int
+  deliveryFee    Int           @default(0)
+  total          Int
+  deliveryDate   DateTime      @db.Date
+  deliverySlotId String
+  deliverySlot   DeliverySlot  @relation(fields: [deliverySlotId], references: [id])
+
+  // Address snapshot at time of order (immutable even if the user edits their address later)
+  deliveryName    String
+  deliveryPhone   String
+  deliveryLine1   String
+  deliveryLine2   String?
+  deliveryCity    String
+  deliveryState   String
+  deliveryPincode String
+
+  razorpayOrderId   String? @unique
+  razorpayPaymentId String?
+  customerNote      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  items OrderItem[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  // Snapshots so the order history survives product edits/deletions
+  name      String
+  price     Int
+  quantity  Int
+
+  @@index([orderId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+model CustomCakeRequest {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  occasion          String
+  sizeLabel         String
+  flavour           String
+  isEggless         Boolean           @default(false)
+  cakeMessage       String?
+  referenceImageUrl String?
+  instructions      String?
+  neededByDate      DateTime          @db.Date
+  status            CakeRequestStatus @default(NEW)
+  quotedPrice       Int?
+  adminNote         String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([userId])
+}
