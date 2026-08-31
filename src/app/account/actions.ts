@@ -2,8 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { getCurrentUser } from "@/lib/auth/session";
-import { addressSchema, profileSchema, type FieldErrors } from "@/lib/validation";
+import {
+  addressSchema,
+  changePasswordSchema,
+  profileSchema,
+  type FieldErrors,
+} from "@/lib/validation";
 
 export type AccountFormState = {
   error?: string;
@@ -28,6 +34,33 @@ export async function updateProfile(
     data: { name: parsed.data.name, phone: parsed.data.phone },
   });
   revalidatePath("/account");
+  return { success: true };
+}
+
+export async function changePassword(
+  _prev: AccountFormState,
+  formData: FormData
+): Promise<AccountFormState> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Please sign in again." };
+
+  const parsed = changePasswordSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  const record = await db.user.findUnique({
+    where: { id: user.id },
+    select: { passwordHash: true },
+  });
+  if (!record || !(await verifyPassword(parsed.data.currentPassword, record.passwordHash))) {
+    return { fieldErrors: { currentPassword: ["Current password is incorrect"] } };
+  }
+
+  await db.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await hashPassword(parsed.data.newPassword) },
+  });
   return { success: true };
 }
 

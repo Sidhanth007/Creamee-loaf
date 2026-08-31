@@ -16,6 +16,27 @@ export const otpSchema = z.object({
   code: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Please enter a valid email"),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  code: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit code"),
+  password: z.string().min(8, "Password must be at least 8 characters").max(100),
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password"),
+    newPassword: z.string().min(8, "New password must be at least 8 characters").max(100),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
 export const profileSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(80),
   phone: z

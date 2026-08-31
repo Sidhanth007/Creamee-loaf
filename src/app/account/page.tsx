@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/session";
 import { ProfileForm } from "./profile-form";
 import { AddressList } from "./address-list";
+import { ChangePasswordForm } from "./change-password-form";
 
 export const metadata: Metadata = { title: "My account" };
 
@@ -43,6 +44,7 @@ export default async function AccountPage() {
             isDefault: a.isDefault,
           }))}
         />
+        <ChangePasswordForm />
       </div>
     </main>
   );

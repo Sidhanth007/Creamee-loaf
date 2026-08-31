@@ -8,9 +8,11 @@ import { createSession, destroySession } from "@/lib/auth/session";
 import { sendOtpEmail } from "@/lib/email/brevo";
 import { rateLimit } from "@/lib/rate-limit";
 import {
+  forgotPasswordSchema,
   loginSchema,
   otpSchema,
   registerSchema,
+  resetPasswordSchema,
   type FieldErrors,
 } from "@/lib/validation";
 
@@ -145,5 +147,74 @@ export async function login(
 
 export async function logout() {
   await destroySession();
+  redirect("/");
+}
+
+// ---------- Password reset ----------
+
+async function sendResetCode(email: string) {
+  // Only real, verified accounts get an email — but the caller never learns
+  // whether one exists (prevents account enumeration).
+  const user = await db.user.findUnique({ where: { email } });
+  if (!user?.emailVerified) return;
+  const otp = await issueOtp(email, "RESET_PASSWORD");
+  if (!otp.ok) return;
+  await sendOtpEmail(email, otp.code, otp.ttlMinutes, "reset");
+}
+
+export async function requestPasswordReset(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = forgotPasswordSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+  const { email } = parsed.data;
+  if (!rateLimit(`reset:${email}`, 5, 15 * 60 * 1000)) {
+    return { error: "Too many attempts. Please try again in 15 minutes." };
+  }
+  await sendResetCode(email);
+  redirect(`/reset-password?email=${encodeURIComponent(email)}`);
+}
+
+export async function resendResetCode(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email) return { error: "Missing email address." };
+  if (!rateLimit(`reset:${email}`, 5, 15 * 60 * 1000)) {
+    return { error: "Too many attempts. Please try again in 15 minutes." };
+  }
+  await sendResetCode(email);
+  return { message: "If that email has an account, a new code is on its way." };
+}
+
+export async function resetPassword(
+  _prev: AuthFormState,
+  formData: FormData
+): Promise<AuthFormState> {
+  const parsed = resetPasswordSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    const errors = parsed.error.flatten().fieldErrors;
+    return {
+      fieldErrors: errors,
+      error: errors.code?.[0] ?? undefined,
+    };
+  }
+  const { email, code, password } = parsed.data;
+
+  const user = await db.user.findUnique({ where: { email } });
+  if (!user) return { error: "Incorrect code. Please try again." };
+
+  const result = await verifyOtp(email, "RESET_PASSWORD", code);
+  if (!result.ok) return { error: result.error };
+
+  await db.user.update({
+    where: { id: user.id },
+    data: { passwordHash: await hashPassword(password) },
+  });
+  await createSession(user.id);
   redirect("/");
 }
