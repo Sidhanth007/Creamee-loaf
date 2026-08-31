@@ -78,7 +78,7 @@ export default async function SuccessPage({
           </div>
           <div className="flex justify-between font-medium">
             <span>Total paid (test)</span>
-            <span className="font-heading text-lg">{formatPrice(order.total)}</span>
+            <span className="text-lg font-semibold tabular-nums">{formatPrice(order.total)}</span>
           </div>
         </CardContent>
       </Card>

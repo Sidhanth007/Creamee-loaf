@@ -107,7 +107,7 @@ export default async function ProductPage({ params }: PageProps<"/menu/[slug]">)
           )}
           <p className="text-muted-foreground">{product.description}</p>
           <div className="flex items-baseline gap-2">
-            <span className="font-heading text-3xl font-semibold">
+            <span className="text-3xl font-semibold tabular-nums">
               {formatPrice(product.price)}
             </span>
             <span className="text-sm text-muted-foreground">/ {product.unitLabel}</span>

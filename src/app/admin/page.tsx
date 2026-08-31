@@ -78,7 +78,7 @@ export default async function AdminOverviewPage() {
                 <Icon className="size-4" />
                 <span className="text-sm">{label}</span>
               </div>
-              <span className="font-heading text-2xl font-semibold">{value}</span>
+              <span className="text-2xl font-semibold tabular-nums">{value}</span>
             </CardContent>
           </Card>
         ))}
@@ -121,7 +121,7 @@ export default async function AdminOverviewPage() {
                       <TableCell>
                         <OrderStatusBadge status={o.status} />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium tabular-nums">
                         {formatPrice(o.total)}
                       </TableCell>
                     </TableRow>

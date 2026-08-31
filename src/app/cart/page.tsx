@@ -139,7 +139,7 @@ export default async function CartPage() {
                       </Button>
                     </form>
                   </div>
-                  <p className="font-heading font-semibold">
+                  <p className="font-semibold tabular-nums">
                     {formatPrice(item.product.price * item.quantity)}
                   </p>
                 </div>
@@ -167,7 +167,7 @@ export default async function CartPage() {
             <Separator />
             <div className="flex justify-between font-medium">
               <span>Total</span>
-              <span className="font-heading text-lg">{formatPrice(total)}</span>
+              <span className="text-lg font-semibold tabular-nums">{formatPrice(total)}</span>
             </div>
             <Button
               size="lg"

@@ -118,7 +118,7 @@ export default async function AdminOrdersPage({
                       <TableCell>
                         <OrderStatusBadge status={o.status} />
                       </TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium tabular-nums">
                         {formatPrice(o.total)}
                       </TableCell>
                     </TableRow>

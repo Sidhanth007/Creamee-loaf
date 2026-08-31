@@ -139,7 +139,7 @@ export default async function AdminOrderDetailPage({
             </div>
             <div className="flex justify-between font-medium">
               <span>Total</span>
-              <span className="font-heading">{formatPrice(order.total)}</span>
+              <span className="font-semibold tabular-nums">{formatPrice(order.total)}</span>
             </div>
           </CardContent>
         </Card>

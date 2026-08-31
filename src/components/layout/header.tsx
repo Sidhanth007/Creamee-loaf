@@ -16,9 +16,12 @@ export async function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="font-heading text-xl font-semibold">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:gap-4">
+        <div className="flex items-center gap-3 sm:gap-6">
+          <Link
+            href="/"
+            className="font-heading text-lg font-semibold whitespace-nowrap sm:text-xl"
+          >
             {site.name}
           </Link>
           <Link
@@ -38,7 +41,8 @@ export async function Header() {
               href="/orders"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              My orders
+              <span className="max-sm:hidden">My orders</span>
+              <span className="sm:hidden">Orders</span>
             </Link>
           )}
           {user?.role === "ADMIN" && (
@@ -88,7 +92,8 @@ export async function Header() {
                 Sign in
               </Button>
               <Button size="sm" render={<Link href="/register" />}>
-                Create account
+                <span className="max-sm:hidden">Create account</span>
+                <span className="sm:hidden">Sign up</span>
               </Button>
             </>
           )}

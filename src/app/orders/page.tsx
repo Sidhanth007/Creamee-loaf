@@ -64,7 +64,7 @@ export default async function OrdersPage() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-heading text-lg font-semibold">
+              <span className="text-lg font-semibold tabular-nums">
                 {formatPrice(order.total)}
               </span>
               <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

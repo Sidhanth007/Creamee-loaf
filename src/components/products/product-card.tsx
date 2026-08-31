@@ -61,7 +61,7 @@ export function ProductCard({
             </span>
           )}
         </div>
-        <p className="mt-auto pt-2 font-heading text-lg font-semibold">
+        <p className="mt-auto pt-2 text-lg font-semibold tabular-nums">
           {formatPrice(product.price)}
         </p>
       </div>

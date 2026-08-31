@@ -240,7 +240,7 @@ export function CheckoutForm({
           <Separator />
           <div className="flex justify-between font-medium">
             <span>Total</span>
-            <span className="font-heading text-lg">{formatPrice(total)}</span>
+            <span className="text-lg font-semibold tabular-nums">{formatPrice(total)}</span>
           </div>
           <Button type="submit" size="lg" className="mt-2" disabled={pending || paying}>
             {pending || paying

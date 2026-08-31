@@ -71,7 +71,7 @@ export default async function AdminCustomersPage() {
                         }).format(c.createdAt)}
                       </TableCell>
                       <TableCell>{c.orders.length}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="text-right font-medium tabular-nums">
                         {formatPrice(c.orders.reduce((s, o) => s + o.total, 0))}
                       </TableCell>
                     </TableRow>

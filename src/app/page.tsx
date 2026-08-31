@@ -56,7 +56,7 @@ export default async function HomePage() {
         <Badge variant="secondary" className="rounded-full px-4 py-1 text-sm">
           {site.tagline}
         </Badge>
-        <h1 className="font-heading text-5xl font-semibold tracking-tight text-balance sm:text-7xl">
+        <h1 className="font-heading text-4xl font-semibold tracking-tight text-balance sm:text-7xl">
           {site.name}
         </h1>
         <p className="max-w-2xl text-lg text-muted-foreground text-pretty">
